@@ -1,0 +1,40 @@
+html, body {
+  background-color: #222;
+  width: 100%;
+  height: 100%;
+}
+
+.content {
+  width: 100%;
+  height: 100%;
+}
+
+/* stage -- start */
+.stage {
+  position: relative;
+
+  width: 100%;
+  height: 880px;
+}
+/* stage -- end */
+
+/* img -- start */
+.img-sec {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #ddd;
+}
+/* img -- end */
+/* controller -- start */
+.controller-nav {
+  position: absolute;
+  left: 0;
+  bottom: 30px;
+  z-index: 101;
+
+  width: 100%;
+
+  text-align: center;
+}
+/* controller -- end */
