@@ -23,6 +23,12 @@ imageDatas = (function genImageURL(imageDatasArr) {
  function getRangeRandom(low, high) {
 	return Math.ceil(Math.random() * (high - low) + low);
  }
+ /*
+  * 获取0~30°之间的一个任意正负值
+  */
+ function get30DegRandom() {
+	return ((Math.random() > 0.5 ? '' : '-') + Math.ceil(Math.random() * 30));
+ }
 var ImgFigure = React.createClass({
 	render: function () {
 		/*
@@ -34,6 +40,24 @@ var ImgFigure = React.createClass({
 		//如果props属性中指定了这张图片的位置，则使用
 		if (this.props.arrange.pos) {
 			styleObj = this.props.arrange.pos;
+		}
+		/*
+		 * 使用css3的transform属性来修饰元素进行形变，这里形变是rotate旋转
+		 * 下面是写法示例
+		 *.test-rotate {
+		 *	transform: rotate(30deg);
+		 *	}
+		 * 如果图片的旋转角度有值并且不为0，添加旋转角度
+		 * styleObj['transform'] = 'rotate(' + this.props.arrange.rotate + 'deg)';
+		 * 这种写法不能兼容所有浏览器，有些浏览器在应用这些css3属性的时候还是要添加厂商前缀的
+		 * 首先声明一个厂商前缀的数组，遍历
+		 * 使用bind(this)将imgFigure component对象传入forEach中的处理函数，以遍可以直接在函数中调用this.props.arrange.rotate
+		 * 分别为styleObj添加带有厂商前缀的css属性配值
+		 */
+		if (this.props.arrange.rotate) {
+			(['-moz-', '-ms-', '-webkit-', '']).forEach(function(value) {
+				styleObj[value + 'transform'] = 'rotate(' + this.props.arrange.rotate + 'deg)';
+			}.bind(this));
 		}
 		return (
 			<figure className="img-figure" style={styleObj}>
@@ -96,6 +120,11 @@ var GalleryByReactApp = React.createClass({
 		imgsArrangeCenterArr[0].pos = centerPos;
 
 		/*
+		 * 生成一个随机的rotate值
+		 * 居中的 centerIndex 的图片不需要旋转
+		 */
+		imgsArrangeCenterArr[0].rotate = 0;
+		/*
 		 * 取出要布局上侧的图片的状态信息，以后会继续扩展这个状态，不止包含位置
 		 * 下面计算一个随机数，从imgsArrangeArr中定位取出要定位在上侧的图片状态信息
 		 */
@@ -108,10 +137,21 @@ var GalleryByReactApp = React.createClass({
 		 * 不管imgsArrangeTopArr有没有值，调用forEach总不会出错。如果数组中没值就不会进入到forEach的处理函数中
 		 */
 		imgsArrangeTopArr.forEach(function (value, index) {
-			imgsArrangeTopArr[index].pos = {
+			/*
+			 * 调整了一下写法，imgsArrangeTopArr[index]等与一个object
+			 * 添加了rotate信息
+			 */
+			imgsArrangeTopArr[index] = {
+				pos: {
+					top: getRangeRandom(vPosRangeTopY[0], vPosRangeTopY[1]),
+					left: getRangeRandom(vPosRangeX[0], vPosRangeX[1])
+				},
+				rotate: get30DegRandom()
+			};
+			/*imgsArrangeTopArr[index].pos = {
 				top: getRangeRandom(vPosRangeTopY[0], vPosRangeTopY[1]),
 				left: getRangeRandom(vPosRangeX[0], vPosRangeX[1])
-			};
+			};*/
 		});
 
 		/*
@@ -128,10 +168,19 @@ var GalleryByReactApp = React.createClass({
 			} else {
 				hPosRangeLORX = hPosRangeRightSecX;
 			}
-			imgsArrangeArr[i].pos = {
+			//和调整上侧一样调整一下写法,并加入旋转信息
+			//添加完就是使用这些rotate信息，信息的消费者就是imgFigure component，进入imgFigure component中
+			imgsArrangeArr[i] = {
+				pos: {
+					top: getRangeRandom(hPosRangeY[0], hPosRangeY[1]),
+					left: getRangeRandom(hPosRangeLORX[0], hPosRangeLORX[1])
+				},
+				rotate: get30DegRandom()
+			};
+			/*imgsArrangeArr[i].pos = {
 				top: getRangeRandom(hPosRangeY[0], hPosRangeY[1]),
 				left: getRangeRandom(hPosRangeLORX[0], hPosRangeLORX[1])
-			};
+			};*/
 
 		}
 		//位置信息都处理完了，该生成的随机数都生成了，下面把他们重新合并回来
@@ -148,7 +197,12 @@ var GalleryByReactApp = React.createClass({
 		//随意布局的值生成好了，下面就是使用这些随意布局的值。怎么使用呢，我们在调用imgFigures component的时候，
 		//将这些信息传递进imgFigure component。见imgFigures.push
 	},
-
+	/*
+	 * 旋转整体的添加思路和定位一模一样。
+	 * 在大管家的getInitialState中的imgsArrangeArr数组中存放的状态信息里，额外设置一个key值rotate，
+	 * 用来表示图片的旋转角度
+	 * 跟position一样，首先在render里边，去对rotate做一个填充
+	 */
 	getInitialState: function () {
 		return {
 			/*
@@ -164,7 +218,8 @@ var GalleryByReactApp = React.createClass({
 					pos: {
 						left: '0',
 						top: '0'
-					}
+					}，
+					rotate: 0	//旋转角度
 				}*/
 			]
 		};
@@ -226,13 +281,16 @@ var GalleryByReactApp = React.createClass({
 		 * 初始化到了左上角
 		 * 那么随意的布局应该在哪里做呢
 		 * 随意的布局，生成随意的left，top值，我们在rearrange里面写
+		 * 旋转：如果没有this.state.imgsArrangeArr[index]，则填充为0
+		 * 然后进入rearrange函数
 		 */
 		if (!this.state.imgsArrangeArr[index]) {
 			this.state.imgsArrangeArr[index] = {
 				pos: {
 					left: 0,
 					top: 0
-				}
+				},
+				rotate: 0
 			};
 		}
 		/*
