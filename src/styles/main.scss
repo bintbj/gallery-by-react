@@ -24,12 +24,14 @@ html, body {
   width: 100%;
   height: 100%;
   background-color: #ddd;
-
+  
+  perspective: 1800px;
   @at-root {
     .img-figure {
       position: absolute;
       
-      width: 320px;
+      //width: 320px;
+      width: 507px;
       height:360px;
       margin: 0;
       padding: 40px;
@@ -37,11 +39,24 @@ html, body {
       background-color: #fff;
 
       box-sizing: border-box;
+      transform-origin: 0 50% 0;
+      cursor: pointer;
+      transform-style: preserve-3d;
+
+      transition: transform .6s ease-in-out, left .6s ease-in-out, top .6s ease-in-out;
+      &.is-inverse {
+        transform: translate(507px) rotateY(180deg);
+      }
       img {
-        width: 240px;
+        //width: 240px;
+        width: 427px;
         height: 240px;
       }
+
     }
+    /* .is-inverse{
+        transform: translate(320px) rotateY(180deg);
+    } */
     figcaption {
       text-align: center;
 
@@ -49,6 +64,26 @@ html, body {
           margin: 20px 0 0 0;
           color: #a7a0a2;
           font-size: 16px;
+      }
+      .img-back{
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          padding: 50px 40px;
+          overflow: auto;
+          color:#a7a0a2;
+          font-size: 22px;
+          line-height: 1.25;
+          text-align: left;
+          background-color: #fff;
+          box-sizing: border-box;
+          transform: rotateY(180deg);
+          backface-visibility: hidden;
+          p{
+            margin: 0;
+        }
       }
     }
   }
